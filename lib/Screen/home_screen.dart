@@ -1,4 +1,3 @@
-
 import 'package:api_call_demo/Screen/home_details.dart';
 import 'package:flutter/material.dart';
 import 'package:api_call_demo/ApiCalling/api_service.dart';
@@ -64,8 +63,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
       getData = getDataString != null
           ? (jsonDecode(getDataString) as List)
-          .map((data) => GetApiList.fromJson(data))
-          .toList()
+              .map((data) => GetApiList.fromJson(data))
+              .toList()
           : [];
     });
   }
@@ -157,57 +156,67 @@ class _HomeScreenState extends State<HomeScreen> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : getData == null || getData!.isEmpty
-          ? const Center(child: Text('No data available'))
-          : ListView.builder(
-        controller: _scrollController,
-        itemCount: getData!.length,
-        itemBuilder: (context, index) {
-          final item = getData![index];
-          return Padding(
-            padding: const EdgeInsets.all(6.0),
-            child: ListTile(
-              onTap: () {
-                setState(() {
-                  readItems[item.id] = true;
-                });
-                pauseTimer(item.id); // Pause timer when navigating
-                saveLocalData();
+              ? const Center(child: Text('No data available'))
+              : ListView.builder(
+                  controller: _scrollController,
+                  itemCount: getData!.length,
+                  itemBuilder: (context, index) {
+                    final item = getData![index];
+                    return Padding(
+                      padding: const EdgeInsets.all(6.0),
+                      child: ListTile(
+                        onTap: () {
+                          setState(() {
+                            readItems[item.id] = true;
+                          });
 
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        HomeDetailsScreen(id: item.id),
-                  ),
-                ).then((value) {
-                  resumeTimer(item.id); // Resume the timer on return
-                });
-              },
-              tileColor: readItems[item.id] == true
-                  ? Colors.white
-                  : Colors.yellow.withOpacity(0.3),
-              title: Text(item.title),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text("${timers[item.id]}s"),
-                  IconButton(
-                    icon: const Icon(Icons.timer),
-                    onPressed: () {
-                      if (activeTimers[item.id] == null) {
-                        startTimer(item.id);
-                      } else {
-                        pauseTimer(item.id);
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+                          // Only pause the timer if it was running
+                          bool wasTimerRunning = activeTimers[item.id] != null;
+                          if (wasTimerRunning) {
+                            pauseTimer(
+                                item.id); // Pause the timer if it was running
+                          }
+
+                          saveLocalData(); // Save the data when navigating
+
+                          // Navigate to the details screen
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  HomeDetailsScreen(id: item.id),
+                            ),
+                          ).then((value) {
+                            // Only resume the timer if it was running before navigation
+                            if (wasTimerRunning) {
+                              resumeTimer(item.id);
+                            }
+                          });
+                        },
+                        tileColor: readItems[item.id] == true
+                            ? Colors.white
+                            : Colors.yellow.withOpacity(0.3),
+                        title: Text(item.title),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text("${timers[item.id]}s"),
+                            IconButton(
+                              icon: const Icon(Icons.timer),
+                              onPressed: () {
+                                if (activeTimers[item.id] == null) {
+                                  startTimer(item.id);
+                                } else {
+                                  pauseTimer(item.id);
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
     );
   }
 }
-
